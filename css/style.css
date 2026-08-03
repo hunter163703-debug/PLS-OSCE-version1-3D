@@ -1,0 +1,223 @@
+/* 高對比 無障礙 UI ｜ 全域最小 16pt */
+:root{
+  --bg:#0b0f14;        /* 深色背景 */
+  --fg:#ffffff;        /* 亮白字 */
+  --panel:#121821;
+  --line:#2a3542;
+  --accent:#ffd34d;    /* 亮黃強調 */
+  --danger:#ff5b5b;
+  --ok:#4ade80;
+  --min:16pt;          /* 16pt */
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;height:100%;overflow:hidden}
+body{
+  background:var(--bg);
+  color:var(--fg);
+  font-family:"Microsoft JhengHei","PingFang TC","Noto Sans TC",sans-serif;
+  font-size:var(--min);                 /* 預設 16pt */
+  line-height:1.45;
+  letter-spacing:.02em;
+  display:flex;flex-direction:column;   /* 頂欄高度自適應（含計時器列） */
+}
+h1,h2{margin:0;font-weight:700;line-height:1.25}
+h1{font-size:20pt}                       /* 標題 */
+h2{font-size:17pt;margin-bottom:.15em}
+p{margin:.15em 0}
+
+/* 頂欄 */
+#topbar{
+  display:flex;align-items:center;justify-content:space-between;
+  gap:.6em;padding:.3em .7em;
+  background:#000;color:#fff;border-bottom:2px solid var(--accent);
+}
+#statusBadge{font-size:var(--min);font-weight:700;color:#000;background:var(--accent);
+  padding:.12em .5em;border-radius:4px}
+
+/* 測驗計時器（頂欄左側、標題下方） */
+#topbar-left{display:flex;flex-direction:column;gap:.05em}
+#timerBox{display:flex;align-items:center;gap:.6em;font-size:var(--min)}
+#examTimer{font-family:Consolas,monospace;font-weight:700;color:#fff;
+  background:#222;padding:.05em .5em;border-radius:4px;letter-spacing:.05em}
+.timer-flag{font-weight:900;color:#000;background:#ffd34d;padding:.05em .5em;border-radius:4px}
+.timer-flag.danger{color:#fff;background:#e02424}
+@keyframes timerBlink{0%,49%{opacity:1}50%,100%{opacity:.15}}
+.blink{animation:timerBlink 0.9s linear infinite}
+
+/* 佈局：右側無捲動，全部一屏 */
+#layout{
+  display:grid;
+  grid-template-columns:2fr 1fr;
+  grid-template-rows:1fr;
+  gap:0;
+  flex:1;min-height:0;   /* 高度 = 100vh - 頂欄實際高度 */
+}
+#stage{
+  position:relative;
+  background:#0a0d11;
+  overflow:hidden;
+}
+#webgl{
+  display:block;
+  width:100%;
+  height:60%;
+}
+#cardOverlay{
+  position:absolute;
+  bottom:0; left:0; right:0;
+  height:40%;
+  background:#000;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  border-top:3px solid var(--accent);
+}
+#cardOverlay img{
+  height:96%;
+  width:auto;
+  object-fit:contain;
+}
+#panel{
+  overflow:hidden;padding:.4em .5em;
+  background:var(--panel);border-left:2px solid var(--line);
+}
+
+/* 中螢幕：維持 2:1 比例 */
+@media (max-width:1100px){
+  #layout{grid-template-columns:2fr 1fr}
+}
+.block{padding:.35em .5em;border:1px solid var(--line);border-radius:7px;margin-bottom:.4em;background:#0e1419}
+.block.compact{padding:.25em .4em;margin-bottom:.3em}
+.block.compact h2{font-size:15pt}
+
+/* 字幕：置底 高對比 */
+.caption{
+  display:none; /* 使用者要求刪除圖卡最下方說明欄 / 字幕 */
+}
+
+/* 對話雲：人物說話時顯示 */
+.speech-bubble{
+  position:absolute;
+  top:8%;
+  right:18%;
+  background:#ffffff;
+  color:#000000;
+  font-size:18pt;
+  font-weight:700;
+  padding:.5em .9em;
+  border-radius:18px;
+  border:3px solid #000000;
+  max-width:260px;
+  text-align:center;
+  z-index:20;
+  pointer-events:none;
+  box-shadow:0 4px 12px rgba(0,0,0,.4);
+}
+.speech-bubble::after{
+  content:'';
+  position:absolute;
+  bottom:-14px;
+  left:50%;
+  transform:translateX(-50%);
+  border-width:14px 14px 0;
+  border-style:solid;
+  border-color:#000000 transparent transparent transparent;
+}
+.speech-bubble::before{
+  content:'';
+  position:absolute;
+  bottom:-9px;
+  left:50%;
+  transform:translateX(-50%);
+  border-width:12px 12px 0;
+  border-style:solid;
+  border-color:#ffffff transparent transparent transparent;
+  z-index:1;
+}
+.transcript{font-size:var(--min);font-weight:700;color:var(--fg);min-height:1.2em}
+.status{font-size:var(--min);color:var(--accent);font-weight:700}
+.badge{font-weight:700}
+
+/* 按鈕 */
+.btn{
+  font-size:var(--min);font-weight:700;
+  padding:.25em .55em;border-radius:5px;cursor:pointer;
+  background:#fff;color:#000;border:2px solid #000;
+}
+.btn:hover{background:var(--accent)}
+.btn:active{transform:translateY(1px)}
+.btn.primary{background:var(--accent);color:#000;border-color:#000}
+.btn.card{min-width:54px;margin:.1em}
+.cardrow{display:flex;flex-wrap:wrap;gap:.2em}
+#micBtn.recording{background:var(--danger);color:#fff;border-color:#fff}
+
+.guide{font-size:var(--min);margin:.15em 0;padding-left:1.1em}
+.guide li{margin:.1em 0}
+
+/* 測驗進度 */
+.progress-tree{display:flex;flex-direction:column;gap:.25em}
+.phase{font-size:var(--min);background:#1a1f27;border:1px solid var(--line);border-radius:6px;padding:.2em .35em}
+.phase-title{font-weight:700;color:#fff;margin-bottom:.05em}
+.sub-list{display:flex;flex-wrap:wrap;gap:.2em}
+.sub-item{font-size:var(--min);font-weight:700;background:#252c36;color:#999;padding:.05em .35em;border-radius:4px;border:1px solid #3a4655}
+.sub-item.current{background:var(--accent);color:#000;border-color:#000}
+.sub-item.done{background:var(--ok);color:#000;border-color:#000}
+
+/* 工具列按鈕群 */
+button{font-size:var(--min)}
+
+/* 手指頭圖示：指向圖卡時顯示 */
+.finger-icon{
+  position:absolute;
+  left:0;
+  top:0;
+  transform:translate(-50%, -50%);
+  font-size:64px;
+  opacity:0;
+  pointer-events:none;
+  z-index:10;
+  transition:opacity .2s;
+}
+.finger-icon.show{
+  opacity:1;
+  animation:fingerTap .6s ease-in-out 2;
+}
+@keyframes fingerTap{
+  0%   { transform:translate(-50%, -50%) translateY(0) scale(1); }
+  50%  { transform:translate(-50%, -50%) translateY(24px) scale(0.92); }
+  100% { transform:translate(-50%, -50%) translateY(0) scale(1); }
+}
+
+/* 測驗結束提示遮罩 */
+.exam-end-overlay{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.75);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  z-index:9999;
+}
+.exam-end-box{
+  background:#121821;
+  border:3px solid var(--accent);
+  border-radius:12px;
+  padding:2em 2.5em;
+  max-width:520px;
+  text-align:center;
+  color:#fff;
+}
+.exam-end-box h2{
+  font-size:20pt;
+  margin-bottom:.6em;
+  color:var(--accent);
+}
+.exam-end-box p{
+  font-size:17pt;
+  margin-bottom:1.2em;
+  line-height:1.6;
+}
+.exam-end-box .btn{
+  font-size:18pt;
+  padding:.4em 1.2em;
+}

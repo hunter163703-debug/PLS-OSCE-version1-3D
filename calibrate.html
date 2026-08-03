@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8" />
+<title>圖卡物品座標校準工具</title>
+<style>
+  body{font-family:"Microsoft JhengHei",sans-serif;background:#111;color:#eee;font-size:18px;padding:1em}
+  h1{font-size:22px}
+  #wrap{display:flex;gap:1em;flex-wrap:wrap}
+  #card{position:relative;width:640px;height:auto;cursor:crosshair;border:4px solid #ffd34d}
+  #card img{display:block;width:100%;height:auto}
+  .mark{position:absolute;width:26px;height:26px;margin:-13px;border-radius:50%;
+        border:3px solid #fff;background:#ff3030;box-shadow:0 0 6px #000;font-weight:900;
+        color:#fff;font-size:13px;text-align:center;line-height:22px;pointer-events:none}
+  #out{width:100%;font-family:Consolas,monospace;font-size:15px;
+       background:#020608;padding:14px;border-radius:10px;white-space:pre;overflow:auto;min-height:180px;margin-top:1em}
+  table{border-collapse:collapse;font-size:17px}
+  td,th{border:1px solid #444;padding:5px 10px}
+  th{background:#222}
+  tr.sel td{background:#3a3a10}
+  tr.done td:first-child{color:#4ade80}
+  button{font-size:18px;padding:.5em 1em;margin:.3em .3em .3em 0;cursor:pointer}
+  button.cardBtn.on{background:#ffd34d;color:#000;font-weight:900}
+  #hint{color:#4ade80}
+</style>
+</head>
+<body>
+  <h1>圖卡物品座標校準工具</h1>
+  <p>① 選圖卡 → ② 在表格點選要校準的物品 → ③ 在圖片上<b>點擊該物品中心</b>。每個物品可重複點擊修正。全部完成後複製下方程式碼給 OpenCode。</p>
+  <p>
+    <button class="cardBtn on" data-card="圖卡一">圖卡一</button>
+    <button class="cardBtn" data-card="圖卡四">圖卡四</button>
+    <button onclick="resetCard()">重置本張</button>
+    <button onclick="copyCode()">複製 JS 程式碼</button>
+    <span id="hint"></span>
+  </p>
+
+  <div id="wrap">
+    <div id="card"><img id="img" crossorigin="anonymous" /></div>
+    <div><table id="tbl"><tr><th>物品</th><th>UV.x</th><th>UV.y（上為1）</th></tr></table></div>
+  </div>
+  <div id="out">// 尚未有任何座標…</div>
+
+<script>
+  const CARDS = {
+    '圖卡一': { src:'測驗題本圖片檔/圖卡一.png',  items:['蘋果','手套','香蕉','牛奶','報紙','杯子','手錶'] },
+    '圖卡四': { src:'測驗題本圖片檔/圖卡四.JPG', items:['背書包'] }
+  };
+  // state[card][item] = [uvx, uvy]  （完整圖片座標：左下 (0,0)，右上 (1,1)）
+  let state = {};
+  let curCard = '圖卡一';
+  let curItem = null;
+
+  const img = document.getElementById('img');
+  const cardEl = document.getElementById('card');
+  const tbl = document.getElementById('tbl');
+  const out = document.getElementById('out');
+  const hint = document.getElementById('hint');
+
+  document.querySelectorAll('.cardBtn').forEach(b=>{
+    b.addEventListener('click', ()=>{ switchCard(b.dataset.card); });
+  });
+
+  function switchCard(name){
+    curCard = name;
+    curItem = null;
+    document.querySelectorAll('.cardBtn').forEach(b=> b.classList.toggle('on', b.dataset.card===name));
+    img.src = CARDS[name].src;
+    renderTable();
+    renderMarks();
+    refresh();
+  }
+
+  function renderTable(){
+    tbl.innerHTML = '<tr><th>物品</th><th>UV.x</th><th>UV.y（上為1）</th></tr>';
+    CARDS[curCard].items.forEach(item=>{
+      const tr = document.createElement('tr');
+      const v = state[curCard]?.[item];
+      tr.innerHTML = `<td>${item}</td><td>${v?v[0]:'—'}</td><td>${v?v[1]:'—'}</td>`;
+      if(v) tr.classList.add('done');
+      if(item===curItem) tr.classList.add('sel');
+      tr.style.cursor = 'pointer';
+      tr.addEventListener('click', ()=>{ curItem = item; renderTable(); updateHint(); });
+      tbl.appendChild(tr);
+    });
+  }
+
+  function renderMarks(){
+    cardEl.querySelectorAll('.mark').forEach(m=>m.remove());
+    const items = CARDS[curCard].items;
+    items.forEach((item,i)=>{
+      const v = state[curCard]?.[item];
+      if(!v) return;
+      const m = document.createElement('div');
+      m.className = 'mark';
+      m.textContent = item.slice(0,1);
+      m.title = item;
+      m.style.left = (v[0]*100)+'%';
+      m.style.top  = ((1-v[1])*100)+'%';
+      cardEl.appendChild(m);
+    });
+  }
+
+  cardEl.addEventListener('click', (e)=>{
+    if(!curItem){ hint.textContent = '請先在右邊表格點選要校準的物品！'; return; }
+    const r = img.getBoundingClientRect();
+    const x = (e.clientX - r.left) / r.width;
+    const y = (e.clientY - r.top)  / r.height;
+    if(x<0||x>1||y<0||y>1) return;
+    if(!state[curCard]) state[curCard] = {};
+    state[curCard][curItem] = [x.toFixed(3), (1-y).toFixed(3)];
+    // 自動跳到下一個未校準物品
+    const next = CARDS[curCard].items.find(it=> !state[curCard][it]);
+    curItem = next || curItem;
+    renderTable(); renderMarks(); refresh(); updateHint();
+  });
+
+  function updateHint(){
+    if(curItem){ hint.textContent = `目前校準：「${curItem}」→ 請點擊圖片上「${curItem}」的中心`; }
+    else { hint.textContent = '請在表格點選物品'; }
+  }
+
+  function refresh(){
+    let s = 'export const CARD_ITEMS = {\n';
+    for(const cardName of Object.keys(CARDS)){
+      s += `  '${cardName}': {\n`;
+      const items = state[cardName] || {};
+      for(const [item,v] of Object.entries(items)){
+        s += `    '${item}': {uv:[${v[0]}, ${v[1]}]},\n`;
+      }
+      s += '  },\n';
+    }
+    s += '};';
+    out.textContent = s;
+  }
+
+  function resetCard(){
+    state[curCard] = {};
+    curItem = null;
+    renderTable(); renderMarks(); refresh(); updateHint();
+  }
+  function copyCode(){ navigator.clipboard.writeText(out.textContent); alert('已複製！貼給 OpenCode 即可'); }
+
+  switchCard('圖卡一');
+</script>
+</body>
+</html>

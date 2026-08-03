@@ -1,0 +1,128 @@
+﻿<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>聽語系 3D OSCE 臨床考試模擬演練 — 修訂學前兒童語言障礙評量表 PLS OSCE 版本一</title>
+  <link rel="stylesheet" href="css/style.css?v=20260803i" />
+  <style>
+    /* 強制整頁一屏：隱藏所有捲動條 */
+    ::-webkit-scrollbar { width: 0 !important; height: 0 !important; }
+    html, body { overflow: hidden !important; }
+    #panel { scrollbar-width: none; }
+  </style>
+</head>
+<body>
+  <header id="topbar">
+    <div id="topbar-left">
+      <h1>3D OSCE 臨床考試模擬演練｜PLS OSCE 版本一</h1>
+      <div id="timerBox">
+        <span id="examTimer">00:00 / 10:00</span>
+        <span id="timerWarn" class="timer-flag blink" style="display:none;">還剩 2 分鐘</span>
+        <span id="timerEnd" class="timer-flag blink danger" style="display:none;">施測時間已到，請離場</span>
+      </div>
+    </div>
+    <span id="statusBadge" class="badge">標準病人：3D 小安　狀態：坐姿待命</span>
+  </header>
+
+  <main id="layout">
+    <section id="stage">
+      <canvas id="webgl"></canvas>
+      <div id="cardOverlay" class="card-overlay">
+        <img id="cardImg" src="" alt="圖卡" />
+        <div id="fingerIcon" class="finger-icon">👆</div>
+      </div>
+      <div id="caption" class="caption" aria-live="polite"></div>
+      <div id="bubble" class="speech-bubble" style="display:none;"></div>
+    </section>
+
+    <aside id="panel">
+      <div class="block compact">
+        <h2>麥克風 / 語音</h2>
+        <button id="micBtn" class="btn primary">啟動麥克風</button>
+        <span id="micStatus" class="status">麥克風：尚未啟用</span>
+      </div>
+
+      <div class="block compact">
+        <h2>考生輸入語音</h2>
+        <p id="userText" class="transcript">—</p>
+      </div>
+
+      <div class="block compact">
+        <h2>圖卡控制</h2>
+        <div class="cardrow">
+          <button class="btn card" data-card="圖卡一">圖卡一</button>
+          <button class="btn card" data-card="圖卡二">圖卡二</button>
+          <button class="btn card" data-card="圖卡四">圖卡四</button>
+        </div>
+      </div>
+
+      <div class="block compact">
+        <h2>測驗進度</h2>
+        <div id="progress" class="progress-tree">
+          <div class="phase" data-phase="分測驗二練習題">
+            <div class="phase-title">分測驗二練習題（3題）</div>
+            <div class="sub-list">
+              <span class="sub-item" data-q="練習題一">題目一</span>
+              <span class="sub-item" data-q="練習題二">題目二</span>
+              <span class="sub-item" data-q="練習題三">題目三</span>
+            </div>
+          </div>
+          <div class="phase" data-phase="分測驗二語言理解">
+            <div class="phase-title">分測驗二：語言理解（16題）</div>
+            <div class="sub-list">
+              <span class="sub-item" data-q="語言理解題目一">題目一</span>
+              <span class="sub-item" data-q="語言理解題目二">題目二</span>
+              <span class="sub-item" data-q="語言理解題目三">題目三</span>
+              <span class="sub-item" data-q="語言理解題目四">題目四</span>
+              <span class="sub-item" data-q="語言理解題目五">題目五</span>
+              <span class="sub-item" data-q="語言理解題目六">題目六</span>
+              <span class="sub-item" data-q="語言理解題目七">題目七</span>
+              <span class="sub-item" data-q="語言理解題目八">題目八</span>
+              <span class="sub-item" data-q="語言理解題目九">題目九</span>
+              <span class="sub-item" data-q="語言理解題目十">題目十</span>
+              <span class="sub-item" data-q="語言理解題目十一">題目十一</span>
+              <span class="sub-item" data-q="語言理解題目十二">題目十二</span>
+              <span class="sub-item" data-q="語言理解題目十三">題目十三</span>
+              <span class="sub-item" data-q="語言理解題目十四">題目十四</span>
+              <span class="sub-item" data-q="語言理解題目十五">題目十五</span>
+              <span class="sub-item" data-q="語言理解題目二十八">題目二十八（故事理解）</span>
+            </div>
+          </div>
+          <div class="phase" data-phase="分測驗二口語表達">
+            <div class="phase-title">分測驗四：口語表達（2題）</div>
+            <div class="sub-list">
+              <span class="sub-item" data-q="口語表達題目一">題目一（第16題）</span>
+              <span class="sub-item" data-q="口語表達題目二">題目二（第17題）</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="block compact">
+        <button id="resetBtn" class="btn">重置腳本狀態</button>
+      </div>
+    </aside>
+  </main>
+
+  <!-- 測驗結束提示遮罩 -->
+  <div id="examEndOverlay" class="exam-end-overlay" style="display:none;">
+    <div class="exam-end-box">
+      <h2>施測尚未結束，請接續完成紙本題目當中黑色框框的部分，</h2>
+      <p>共計有 12 個位置要填寫，請仔細確認!</p>
+      <button id="examEndClose" class="btn primary">確定</button>
+    </div>
+  </div>
+
+  <!-- Three.js ES Module importmap -->
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+      "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+    }
+  }
+  </script>
+  <script type="module" src="js/main.js?v=20260803i"></script>
+</body>
+</html>

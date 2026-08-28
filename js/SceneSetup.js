@@ -132,8 +132,8 @@ export function createSceneSetup(canvas){
   }
   function hidePointMarker(){ marker.visible=false; if(blinkTimer){clearInterval(blinkTimer);blinkTimer=null;} }
 
-  // ---- 給小安的「指向目標」空間錨點：圖卡正上方中央 ----
-  // 小安 playAnimation('point') 時，可讓整體 model 朝向此錨點
+  // ---- 給小宇的「指向目標」空間錨點：圖卡正上方中央 ----
+  // 小宇 playAnimation('point') 時，可讓整體 model 朝向此錨點
   const pointAnchor = new THREE.Object3D();
   pointAnchor.position.set(0, 1.06, 0.78); // 圖卡中心稍前
   scene.add(pointAnchor);

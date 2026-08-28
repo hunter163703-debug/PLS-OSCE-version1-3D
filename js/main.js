@@ -1,10 +1,10 @@
 ﻿// main.js
 // 主程式：組合三大模組、UI 事件、語音引擎（Web Speech API）、渲染迴圈
 import * as THREE from 'three';
-import {createSceneSetup} from './SceneSetup.js?v=20260803i';
-import {ModelManager} from './ModelLoader.js?v=20260803i';
-import {InteractionLogic} from './InteractionLogic.js?v=20260803i';
-import {VoicePlayer} from './VoicePlayer.js?v=20260803i';
+import {createSceneSetup} from './SceneSetup.js?v=20260829b';
+import {ModelManager} from './ModelLoader.js?v=20260829b';
+import {InteractionLogic} from './InteractionLogic.js?v=20260829b';
+import {VoicePlayer} from './VoicePlayer.js?v=20260829b';
 
 console.log('[Main] 版本：20260803i');
 
@@ -58,7 +58,7 @@ function showFingerTap(uvx, uvy){
   setTimeout(()=> fingerIcon.classList.remove('show'), 1500);
 }
 
-// 測驗結束提示（等小安把最後一句口語回應播完，再停頓 2 秒讓考生記錄後才顯示）
+// 測驗結束提示（等小宇把最後一句口語回應播完，再停頓 2 秒讓考生記錄後才顯示）
 const examEndOverlay = document.getElementById('examEndOverlay');
 let examEndScheduled = false;
 function showExamEnd(){
@@ -72,16 +72,16 @@ function hideExamEnd(){
 }
 document.getElementById('examEndClose')?.addEventListener('click', hideExamEnd);
 
-// 載入 3D 小安與動畫
+// 載入 3D 小宇與動畫
 const mm = new ModelManager(stage.scene, stage.renderer);
 mm.onLog = (msg)=>{ console.log('[Model]', msg); };
 
-// 小安合成語音：使用專案提供的「小安.MP3」
+// 小宇合成語音：使用專案提供的「小安.MP3」
 const voice = new VoicePlayer(BASE + '小安.MP3');
 voice.onLog = (msg)=> console.log('[Voice]', msg);
 
-// 播放小安語音時暫停麥克風，避免喇叭輸出被麥克風收音造成回音 Loop
-// 小安說完後由 Speech.resumeAuto() 保證恢復（只要考生沒手動關閉）
+// 播放小宇語音時暫停麥克風，避免喇叭輸出被麥克風收音造成回音 Loop
+// 小宇說完後由 Speech.resumeAuto() 保證恢復（只要考生沒手動關閉）
 voice.onSpeakStart = ()=>{ Speech.pauseAuto(); };
 voice.onSpeakEnd   = ()=>{ Speech.resumeAuto(); };
 
@@ -94,14 +94,14 @@ logic.setCaption('載入中…請稍候', 0);
 // ---------- 語音引擎（繁中） ----------
 // 設計原則：
 //   1. 麥克風開關由考生手動控制（desiredOn 記住考生意圖）
-//   2. 小安說話時系統僅「暫停」收音（paused），不改變考生意圖
-//   3. 小安說完後，只要考生沒手動關閉，保證自動恢復收音
+//   2. 小宇說話時系統僅「暫停」收音（paused），不改變考生意圖
+//   3. 小宇說完後，只要考生沒手動關閉，保證自動恢復收音
 const Speech = (()=>{
   const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
   const supported = !!SR;
   let rec=null, onResultCb=null;
   let desiredOn=false;   // 考生希望麥克風保持開啟
-  let paused=false;      // 小安說話中的暫停狀態
+  let paused=false;      // 小宇說話中的暫停狀態
   let active=false;      // 辨識引擎實際運行中
   function ensure(){
     if(!supported) return null;
@@ -143,7 +143,7 @@ const Speech = (()=>{
       }
       // 其餘（no-speech 靜音逾時、aborted 等）皆視為暫時性，交由 onend 自動重啟
     };
-    // 引擎自然結束時：只要考生沒關、也不是小安說話暫停中，就立刻自動重啟
+    // 引擎自然結束時：只要考生沒關、也不是小宇說話暫停中，就立刻自動重啟
     // （加 150ms 延遲提高重啟成功率，避免部分 Chrome 版本同步 start 拋錯）
     rec.onend   = ()=>{
       active=false;
@@ -180,22 +180,22 @@ const Speech = (()=>{
       desiredOn=false; paused=false; setBtn(false);
       if(rec && active){ try{ rec.stop(); }catch(_){ } }
     },
-    // 小安說話：暫停收音（保留考生意圖與按鈕狀態）
+    // 小宇說話：暫停收音（保留考生意圖與按鈕狀態）
     pauseAuto(){
       if(!desiredOn || paused) return;
       paused=true;
       if(rec && active){ try{ rec.stop(); }catch(_){ } }
-      ui.micStatus.textContent='麥克風：小安說話中（暫停收音）';
-      console.log('[Speech] 小安說話 → 暫停收音');
+      ui.micStatus.textContent='麥克風：小宇說話中（暫停收音）';
+      console.log('[Speech] 小宇說話 → 暫停收音');
     },
-    // 小安說完：只要考生沒手動關閉，保證恢復收音
+    // 小宇說完：只要考生沒手動關閉，保證恢復收音
     resumeAuto(){
       if(!paused) return;
       paused=false;
       if(desiredOn){
         tryStart();
         setBtn(true);
-        console.log('[Speech] 小安說完 → 自動恢復收音');
+        console.log('[Speech] 小宇說完 → 自動恢復收音');
       }
     }
   };
@@ -253,7 +253,7 @@ document.getElementById('resetBtn').addEventListener('click', async ()=>{
   examTimer.reset();
   examEndScheduled = false;
   if(examEndOverlay) examEndOverlay.style.display = 'none';
-  ui.setStatusBadge('標準病人：3D 小安　狀態：坐姿待命');
+  ui.setStatusBadge('標準病人：3D 小宇　狀態：坐姿待命');
   logic.setUser('—');
   logic.setCaption('腳本狀態已重置', 2500);
   logic.updateProgressUI();
@@ -272,7 +272,7 @@ document.querySelectorAll('.btn.card').forEach(btn=>{
     await logic.setCard(key, url);
     if(cardImg) cardImg.src = CARD_FILES[key];
     logic.setCaption(`已切換到 ${key}`, 2500);
-    // 顯示圖卡時小安維持坐姿（不主動動作）
+    // 顯示圖卡時小宇維持坐姿（不主動動作）
     mm.play('sit',{once:false, loop:true});
   });
 });
@@ -304,8 +304,8 @@ logic.setCard('封面', BASE + CARD_FILES['封面']);
       stage.camera.lookAt(center.x, targetLookY, center.z);
       console.log('[Main] 模型高度', size.y.toFixed(2), '相機位置', stage.camera.position.toArray(), '視線', targetLookY.toFixed(2), '距離', distance.toFixed(2));
     }
-    ui.setStatusBadge('標準病人：3D 小安　狀態：坐姿待命');
-    logic.setCaption('3D 小安已就位（坐姿）。請啟動麥克風開始測驗。', 3500);
+    ui.setStatusBadge('標準病人：3D 小宇　狀態：坐姿待命');
+    logic.setCaption('3D 小宇已就位（坐姿）。請啟動麥克風開始測驗。', 3500);
   }catch(err){
     console.error(err);
     logic.setCaption('模型載入失敗：'+(err?.message||err), 0);

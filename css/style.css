@@ -66,11 +66,11 @@ p{margin:.15em 0}
   position:absolute;
   bottom:0; left:0; right:0;
   height:40%;
-  background:#000;
+  /* 暗木色桌面質感：讓圖卡看起來像是放在桌上 */
+  background:linear-gradient(180deg,#4a3a28 0%,#3c2f20 45%,#2c2218 100%);
   display:flex;
   align-items:center;
   justify-content:center;
-  border-top:3px solid var(--accent);
 }
 #cardOverlay img{
   height:96%;

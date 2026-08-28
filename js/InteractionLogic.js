@@ -1,6 +1,6 @@
 // InteractionLogic.js
 // 模組三：語音轉文字（Web Speech API）+ 腳本狀態機（Switch / FSM）
-// 將辨識文字映射到 3D 小安的動作、口語回應與圖卡指認
+// 將辨識文字映射到 3D 小宇的動作、口語回應與圖卡指認
 
 // 圖卡上各項目的 UV 座標（完整圖片座標：左下為 (0,0)，右上為 (1,1)）
 // ※ 2026-08-03 經 calibrate.html 實機點擊校準；3D 紋理裁切換算由 SceneSetup 處理
@@ -165,7 +165,7 @@ export class InteractionLogic{
       }
       // 若考生在圖卡二/三問問題但尚未聽過故事，給予提示
       if(isStoryCard && this.state.storyHeardCount < 1 && (t.includes('嗎')||t.includes('呢')||t.includes('誰')||t.includes('什麼')||t.includes('去哪')||t.includes('哪裡')||t.includes('怎麼'))){
-        this.setCaption('【提示】請先朗讀故事，小安才能回答問題。', 4000);
+        this.setCaption('【提示】請先朗讀故事，小宇才能回答問題。', 4000);
         this.mm.play('sit',{once:false, loop:true});
         return;
       }
@@ -367,8 +367,8 @@ export class InteractionLogic{
 
       // 未匹配
       console.log('[Interaction] 未匹配任何指令：', t);
-      this.setPatient('（小安坐著，沒有反應，等待考生下一個指令）');
-      this.setCaption('未匹配腳本指令：小安保持坐姿不動', 3200);
+      this.setPatient('（小宇坐著，沒有反應，等待考生下一個指令）');
+      this.setCaption('未匹配腳本指令：小宇保持坐姿不動', 3200);
       const laterPhases = ['分測驗二語言理解','分測驗二口語表達','測驗四'];
       if(laterPhases.includes(this.state.currentPhase)){
         const unimpl = this._getUnimplementedQuestions();
@@ -412,40 +412,40 @@ export class InteractionLogic{
   // ====== 動作回應封裝 ======
   _doClap(){
     console.log('[Interaction] → 執行 _doClap');
-    this.setPatient('（小安拍拍手）');
-    this.setCaption('小安：拍拍手', 3000);
+    this.setPatient('（小宇拍拍手）');
+    this.setCaption('小宇：拍拍手', 3000);
     this.mm.play('clap',{once:true});
   }
   _doTouchHead(){
     console.log('[Interaction] → 執行 _doTouchHead');
-    this.setPatient('（小安摸摸頭）');
-    this.setCaption('小安：摸摸頭', 3000);
+    this.setPatient('（小宇摸摸頭）');
+    this.setCaption('小宇：摸摸頭', 3000);
     this.mm.play('touchHead',{once:true});
   }
   _doHandshake(){
     console.log('[Interaction] → 執行 _doHandshake');
-    this.setPatient('（小安和你握握手）');
-    this.setCaption('小安：握握手', 3000);
+    this.setPatient('（小宇和你握握手）');
+    this.setCaption('小宇：握握手', 3000);
     this.mm.play('handshake',{once:true});
   }
   _doNod(){
     console.log('[Interaction] → 執行 _doNod');
-    this.setPatient('（小安點點頭）');
-    this.setCaption('小安：點點頭', 3000);
+    this.setPatient('（小宇點點頭）');
+    this.setCaption('小宇：點點頭', 3000);
     this.mm.play('nod',{once:true});
   }
   _doGreet(){
     console.log('[Interaction] → 執行 _doGreet');
-    this.setPatient('（小安揮手打招呼）');
-    this.setCaption('小安：你好～', 3000);
+    this.setPatient('（小宇揮手打招呼）');
+    this.setCaption('小宇：你好～', 3000);
     this.showBubble('你好！');
     this.speak('你好！');
     this.mm.play('greet',{once:true});
   }
   _doSpeak(line){
     console.log('[Interaction] → 執行 _doSpeak：'+line);
-    this.setPatient('小安：'+line);
-    this.setCaption('小安：'+line, 4000);
+    this.setPatient('小宇：'+line);
+    this.setCaption('小宇：'+line, 4000);
     this.showBubble(line, 4000);
     this.speak(line);
     this.mm.play('speak',{once:false, loop:true});
@@ -453,8 +453,8 @@ export class InteractionLogic{
   }
   _doShakeHead(){
     console.log('[Interaction] → 執行 _doShakeHead');
-    this.setPatient('（小安搖頭不語）');
-    this.setCaption('小安：（搖頭，不說話）', 3000);
+    this.setPatient('（小宇搖頭不語）');
+    this.setCaption('小宇：（搖頭，不說話）', 3000);
     if(this.mm.actions.get('shakeHead')){
       this.mm.play('shakeHead',{once:true});
     }else{
@@ -464,14 +464,14 @@ export class InteractionLogic{
   _doCompoundNodCloseEyes(){
     // 新腳本已刪除閉眼動作與閉眼動畫；此函式保留僅為向後相容，實際只執行點頭
     console.log('[Interaction] → 執行 _doCompoundNodCloseEyes（已改為只點頭）');
-    this.setPatient('（小安點點頭）');
-    this.setCaption('小安：點點頭', 3500);
+    this.setPatient('（小宇點點頭）');
+    this.setCaption('小宇：點點頭', 3500);
     this.mm.play('nod',{once:true});
   }
   _doSpeakOnly(line){
     console.log('[Interaction] → 口頭回答：'+line);
-    this.setPatient('小安：'+line);
-    this.setCaption('小安：'+line, 3000);
+    this.setPatient('小宇：'+line);
+    this.setCaption('小宇：'+line, 3000);
     this.showBubble(line, 3000);
     this.speak(line);
     this.mm.play('speak',{once:false, loop:true});
@@ -485,19 +485,19 @@ export class InteractionLogic{
     // 故事理解答問即為第28題：考生開始朗讀故事即標記進入本題
     this.setPhase('分測驗二語言理解','語言理解題目二十八');
     if(this.state.storyHeardCount === 1){
-      this.setPatient('（小安靜靜聽你說故事，不回應）');
-      this.setCaption('第一次聆聽：小安保持沉默 3 秒（測驗延遲反應）', 3200);
+      this.setPatient('（小宇靜靜聽你說故事，不回應）');
+      this.setCaption('第一次聆聽：小宇保持沉默 3 秒（測驗延遲反應）', 3200);
       this.mm.play('sit',{once:false, loop:true});
       // 新腳本：等待3秒後表現出分心的動作
       setTimeout(()=>{
         this.mm.play('distract',{once:true});
-        this.setCaption('小安表現出分心的動作', 3000);
-        this.setPatient('（小安分心、東看西看）');
+        this.setCaption('小宇表現出分心的動作', 3000);
+        this.setPatient('（小宇分心、東看西看）');
       }, 3000);
       return;
     }
-    this.setPatient('（小安點點頭，準備好回答問題）');
-    this.setCaption('第二次聆聽完成：小安可開始作答', 3200);
+    this.setPatient('（小宇點點頭，準備好回答問題）');
+    this.setCaption('第二次聆聽完成：小宇可開始作答', 3200);
     this.mm.play('nod', {once:true});
   }
   _answerStoryQuestion(raw){
@@ -521,13 +521,13 @@ export class InteractionLogic{
       line = '坐車車。';
     }else{
       // fallback：不再說「嗯嗯」，改為靜默點頭，避免干擾測驗
-      this.setPatient('（小安點點頭）');
-      this.setCaption('小安：（點點頭）', 3000);
+      this.setPatient('（小宇點點頭）');
+      this.setCaption('小宇：（點點頭）', 3000);
       this.mm.play('nod',{once:true});
       return;
     }
-    this.setPatient('（小安回答故事問題）'+line);
-    this.setCaption('小安：'+line, 4000);
+    this.setPatient('（小宇回答故事問題）'+line);
+    this.setCaption('小宇：'+line, 4000);
     this.showBubble(line, 4000);
     this.speak(line);
     this.mm.play('speak',{once:false, loop:true});
@@ -539,8 +539,8 @@ export class InteractionLogic{
   _handleYellowQuestion(){
     this.state.yellowAsked = true;
     this.state.yellowProgress = 1;
-    this.setPatient('（小安先指牛奶）');
-    this.setCaption('小安：（先指牛奶，等追問）', 3500);
+    this.setPatient('（小宇先指牛奶）');
+    this.setCaption('小宇：（先指牛奶，等追問）', 3500);
     this._pointToItem('牛奶');
   }
   _handleYellowFollowUp(){
@@ -548,7 +548,7 @@ export class InteractionLogic{
     if(p===1){
       this.state.yellowProgress = 2;
       this._pointToItem('香蕉');
-      this.setCaption('小安：（接著指香蕉）', 3500);
+      this.setCaption('小宇：（接著指香蕉）', 3500);
       this.setPatient('（接著指香蕉）');
       return true;
     }
@@ -558,16 +558,16 @@ export class InteractionLogic{
   _handleFoodAll(){
     this.state.askedFoodAll = true;
     this.state.foodProgress = 0;
-    this.setPatient('（小安分心、東看西看）');
-    this.setCaption('小安：（分心東看西看）', 3500);
+    this.setPatient('（小宇分心、東看西看）');
+    this.setCaption('小宇：（分心東看西看）', 3500);
     this.mm.play('distract',{once:false, loop:true});
     // 分心約 5 秒後指出蘋果
     if(this._foodTimer) clearTimeout(this._foodTimer);
     this._foodTimer = setTimeout(()=>{
       if(!this.state.askedFoodAll || this.state.foodProgress !== 0) return;
       this.state.foodProgress = 1;
-      this.setPatient('（小安指出蘋果）');
-      this.setCaption('小安：（指出蘋果，等考生追問）', 3500);
+      this.setPatient('（小宇指出蘋果）');
+      this.setCaption('小宇：（指出蘋果，等考生追問）', 3500);
       this._pointToItem('蘋果');
     }, 5000);
   }
@@ -575,14 +575,14 @@ export class InteractionLogic{
     const p = this.state.foodProgress;
     if(p===1){
       this.state.foodProgress = 2;
-      this.setPatient('（小安接著指出香蕉和牛奶）');
-      this.setCaption('小安：（接著指出香蕉和牛奶）', 4500);
+      this.setPatient('（小宇接著指出香蕉和牛奶）');
+      this.setCaption('小宇：（接著指出香蕉和牛奶）', 4500);
       this._pointToItems(['香蕉','牛奶']);
       return true;
     }
     if(p>=2){
-      this.setPatient('（小安搖頭，沒有了）');
-      this.setCaption('小安：（搖頭，沒有了）', 3000);
+      this.setPatient('（小宇搖頭，沒有了）');
+      this.setCaption('小宇：（搖頭，沒有了）', 3000);
       this._doShakeHead();
       return true;
     }

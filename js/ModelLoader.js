@@ -1,11 +1,11 @@
 // ModelLoader.js
-// 模組二：載入 3D 小安（FBX）與所有 FBX 動畫，建立 AnimationMixer 並提供平滑 Crossfade
+// 模組二：載入 3D 小宇（FBX）與所有 FBX 動畫，建立 AnimationMixer 並提供平滑 Crossfade
 import * as THREE from 'three';
 import {FBXLoader} from 'three/addons/loaders/FBXLoader.js';
 
 // 動畫 key -> 檔案對應表
 export const ANIM_FILES = {
-  model:   '模擬病人：3D 模擬人物小安/小安.fbx',
+  model:   '小宇人物模型/rig.fbx',
   sit:     '模擬病人：3D 模擬人物小安/坐著.fbx',
   clap:    '模擬病人：3D 模擬人物小安/拍拍手.fbx',
   nod:     '模擬病人：3D 模擬人物小安/點點頭.fbx',
@@ -116,6 +116,9 @@ export class ModelManager{
       }
     }
 
+    // ---- 坐姿鎖定：所有單次動作維持坐姿（臀部高度與雙腿固定為坐姿基準，僅保留上半身動作）----
+    this._applySittingBase();
+
     this.mixer.addEventListener('finished', (e)=>{
       const finishedAction = e.action;
       const key = this._actionKey(finishedAction);
@@ -128,6 +131,69 @@ export class ModelManager{
     });
 
     return this;
+  }
+
+  // 取樣「坐著」clip 的坐姿基準（Hips 位置 + 腿部旋轉），並把所有其他動作的
+  // Hips position 軌道與腿部 quaternion 軌道替換為坐姿常數，避免 Mixamo 動作把角色拉站起來
+  _applySittingBase(){
+    const sitClip = this.clips.get('sit');
+    if(!sitClip || !this.model){ return; }
+
+    const LEG_BONES = ['LeftUpLeg','RightUpLeg','LeftLeg','RightLeg','LeftFoot','RightFoot',
+                       'LeftToeBase','RightToeBase','LeftToe_End','RightToe_End','LFootTongue','RFootTongue'];
+    const getBone = (n)=> this.model.getObjectByName('mixamorig' + n);
+
+    // 1) 取樣坐姿基準：掃多個時間點取 Hips 最低（坐最深）者
+    const sitAction = this.mixer.clipAction(sitClip);
+    sitAction.setLoop(THREE.LoopRepeat, Infinity);
+    sitAction.play();
+    let best = null;
+    for(const frac of [0.5, 0.65, 0.8, 0.9, 0.97]){
+      this.mixer.setTime(sitClip.duration * frac);
+      const hips = getBone('Hips');
+      if(!hips) break;
+      const y = hips.position.y;
+      if(!best || y < best.y){
+        const legs = {};
+        for(const n of LEG_BONES){
+          const b = getBone(n);
+          if(b) legs[n] = b.quaternion.toArray();
+        }
+        best = { y, hipsPos: hips.position.toArray(), legs };
+      }
+    }
+    this.mixer.setTime(0);
+    if(!best){ this.log('⚠ 坐姿取樣失敗，跳過坐姿鎖定'); return; }
+    this.log(`✓ 坐姿基準取樣完成（Hips Y=${best.y.toFixed(2)}）`);
+
+    // 2) 改寫所有非 sit clip 的軌道
+    let fixed = 0;
+    for(const [key, clip] of this.clips){
+      if(key === 'sit') continue;
+      const newTracks = [];
+      let changed = false;
+      for(const t of clip.tracks){
+        const dot = t.name.lastIndexOf('.');
+        const bone = t.name.slice(0, dot);
+        const prop = t.name.slice(dot + 1);
+        if(bone === 'mixamorigHips' && prop === 'position'){
+          newTracks.push(new THREE.VectorKeyframeTrack(t.name, [0], best.hipsPos));
+          changed = true; continue;
+        }
+        const short = bone.replace('mixamorig', '');
+        if(prop === 'quaternion' && LEG_BONES.includes(short) && best.legs[short]){
+          newTracks.push(new THREE.QuaternionKeyframeTrack(t.name, [0], best.legs[short]));
+          changed = true; continue;
+        }
+        newTracks.push(t);
+      }
+      if(changed){
+        clip.tracks = newTracks;
+        fixed++;
+        this.log(`✓ ${key} 已鎖定坐姿`);
+      }
+    }
+    this.log(`坐姿鎖定完成：${fixed} 個動作`);
   }
 
   _actionKey(action){

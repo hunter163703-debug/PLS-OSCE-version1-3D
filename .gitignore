@@ -1,6 +1,19 @@
 # 開發測試素材（非網站必要檔案）
 測試影片1.mp4
 
+# 大型模型原始檔／備份（不進版控，僅保留網站必要模型）
+*.zip
+*.glb
+小宇人物模型/小宇_綁骨.fbx
+小宇人物模型/small-boy-in-half-pant/
+小葵人物模型/
+模擬病人：3D 模擬人物小安/Aj.fbx
+模擬病人：3D 模擬人物小安/aj_from_sabuay_surfers..glb
+模擬病人：3D 模擬人物小安/scene.bin
+模擬病人：3D 模擬人物小安/scene.gltf
+模擬病人：3D 模擬人物小安/source/
+模擬病人：3D 模擬人物小安/textures/
+
 # 系統檔
 Thumbs.db
 desktop.ini

@@ -1,5 +1,5 @@
 // VoicePlayer.js
-// 模組四：小安語音輸出
+// 模組四：小宇語音輸出
 // 優先：播放專案提供的「小安腳本語音」MP3（真實錄音）
 // 次要：Web Speech API SpeechSynthesis（zh-TW 內建語音）
 // 備援：若皆無，退回播放「小安.MP3」音檔

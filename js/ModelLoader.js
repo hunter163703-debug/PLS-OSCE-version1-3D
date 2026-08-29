@@ -6,7 +6,7 @@ import {FBXLoader} from 'three/addons/loaders/FBXLoader.js';
 // 動畫 key -> 檔案對應表
 export const ANIM_FILES = {
   model:   '小宇人物模型/rig.fbx',
-  sit:     '模擬病人：3D 模擬人物小安/坐著.fbx?v=20260830f',
+  sit:     '模擬病人：3D 模擬人物小安/坐著.fbx?v=20260830g',
   clap:    '模擬病人：3D 模擬人物小安/拍拍手.fbx',
   nod:     '模擬病人：3D 模擬人物小安/點點頭.fbx',
   yes:     '模擬病人：3D 模擬人物小安/是.fbx',
@@ -38,6 +38,12 @@ export class ModelManager{
     this._headBone = null;
     this._faceLocal = null;                          // 頭骨局部座標中「臉面朝向」的軸向
     this._lookExempt = new Set(['distract', 'shakeHead', 'touchHead', 'nod', 'yes']);  // 這些動作不修正頭部
+    // 頭部自然微動：緩慢飄移＋定時小瞥視
+    this._gazeT = 0;
+    this._glancePeriod = 9;                          // 約每 9 秒一次小瞥視
+    this._glanceCycle = -1;
+    this._glanceAmpY = 0.12;
+    this._glanceAmpP = 0;
   }
 
   // 調整視線上仰角度（度）
@@ -337,10 +343,8 @@ export class ModelManager{
     this._applyGaze(dt);
   }
 
-  // ---- 持續注視考生：每幀在動畫之後，把頭部「水平朝向＋視線上仰」修正 toward 考生上方 ----
-  // yaw 修正水平朝向、pitch 修正視線上仰；保留點頭等垂直動作者已列入豁免
-  // 注意：動畫每幀都會重置頭部姿勢，因此修正必須每幀「100% 直接套用」（不會累積過衝）
   _applyGaze(dt){
+    this._gazeT += dt;
     const head = this._headBone;
     if(!head || !this._faceLocal) return;
     if(this._lookExempt.has(this.currentKey)) return;
@@ -366,6 +370,23 @@ export class ModelManager{
     const MAX_PITCH = 1.2;
     dp = Math.max(-MAX_PITCH, Math.min(MAX_PITCH, dp));
 
+    // 3) 自然微動：緩慢飄移（±2°）＋定時小瞥視（每約 9 秒，小幅看一下別處再回來）
+    const t = this._gazeT;
+    let yawOff = Math.sin(t*0.33)*0.030 + Math.sin(t*0.61+2.0)*0.018;
+    let pitchOff = Math.sin(t*0.47+1.0)*0.020;
+    const cycle = Math.floor(t / this._glancePeriod);
+    if(cycle !== this._glanceCycle){
+      this._glanceCycle = cycle;
+      this._glanceAmpY = (Math.random() < 0.5 ? -1 : 1) * (0.10 + Math.random()*0.10);  // ±6~11°
+      this._glanceAmpP = (Math.random() - 0.5) * 0.06;
+    }
+    const gt = t - cycle * this._glancePeriod;
+    const bump = Math.exp(-Math.pow((gt - this._glancePeriod*0.55) / 0.8, 2));
+    yawOff += bump * this._glanceAmpY;
+    pitchOff += bump * this._glanceAmpP;
+
+    dy += yawOff;
+    dp += pitchOff;
     if(Math.abs(dy) < 0.0005 && Math.abs(dp) < 0.0005) return;
 
     // 套用：newWorld = Rx(-dp) ∘ Ry(dy) ∘ oldWorld → 共軛轉回頭骨局部

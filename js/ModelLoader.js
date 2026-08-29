@@ -34,9 +34,15 @@ export class ModelManager{
     this._busy = false;
     // ---- 注視考生（頭部水平追蹤）----
     this.gazeTarget = new THREE.Vector3(0, 1.3, 3);  // 預設：畫面前方（考生方向）
+    this.gazePitch = THREE.MathUtils.degToRad(15);   // 視線上仰角度（頭部微抬，直視螢幕上方）
     this._headBone = null;
     this._faceLocal = null;                          // 頭骨局部座標中「臉面朝向」的軸向
-    this._lookExempt = new Set(['distract', 'shakeHead', 'touchHead']);  // 這些動作不修正頭部
+    this._lookExempt = new Set(['distract', 'shakeHead', 'touchHead', 'nod', 'yes']);  // 這些動作不修正頭部
+  }
+
+  // 調整視線上仰角度（度）
+  setGazePitch(deg){
+    this.gazePitch = THREE.MathUtils.degToRad(deg);
   }
 
   // main.js 在相機定位後呼叫，讓小宇注視考生（攝影機）方向
@@ -308,9 +314,9 @@ export class ModelManager{
     this._applyGaze(dt);
   }
 
-  // ---- 持續注視考生：每幀在動畫之後，把頭部「水平朝向」修正 toward 考生 ----
-  // 只修正水平（yaw），保留點頭／低頭等垂直動作；分心／搖頭／摸頭時豁免讓動作完整呈現
-  // 注意：動畫每幀都會重置頭部姿勢，因此修正必須每幀「高比例直接套用」（不會累積過衝）
+  // ---- 持續注視考生：每幀在動畫之後，把頭部「水平朝向＋視線上仰」修正 toward 考生上方 ----
+  // yaw 修正水平朝向、pitch 修正視線上仰；保留點頭等垂直動作者已列入豁免
+  // 注意：動畫每幀都會重置頭部姿勢，因此修正必須每幀「100% 直接套用」（不會累積過衝）
   _applyGaze(dt){
     const head = this._headBone;
     if(!head || !this._faceLocal) return;
@@ -318,32 +324,39 @@ export class ModelManager{
 
     const qHead = head.getWorldQuaternion(_gazeQ1);
     const faceWorld = _gazeV1.copy(this._faceLocal).applyQuaternion(qHead);
-    const yawCur = Math.atan2(faceWorld.x, faceWorld.z);
 
+    // 1) yaw 修正：水平朝向考生
+    const yawCur = Math.atan2(faceWorld.x, faceWorld.z);
     head.getWorldPosition(_gazeV2);
     const dx = this.gazeTarget.x - _gazeV2.x;
     const dz = this.gazeTarget.z - _gazeV2.z;
     const yawTarget = Math.atan2(dx, dz);
-
     let dy = yawTarget - yawCur;
     if(dy > Math.PI) dy -= 2*Math.PI;
     if(dy < -Math.PI) dy += 2*Math.PI;
-    const MAX_CORR = 2.2;                        // 修正上限 ±126°（覆蓋 sit idle 頭部最大轉動）
-    dy = Math.max(-MAX_CORR, Math.min(MAX_CORR, dy));
-    // 完全修正（100%）：直視考生。動畫每幀重置頭部姿勢，不會過衝累積
-    if(Math.abs(dy) < 0.0005) return;
+    const MAX_YAW = 2.2;
+    dy = Math.max(-MAX_YAW, Math.min(MAX_YAW, dy));
 
-    // 把世界座標系繞 Y 軸的旋轉轉成頭骨局部旋轉並套用
-    // 共軛變換：local' = parentW⁻¹ ∘ Ryaw ∘ parentW ∘ local
+    // 2) pitch 修正：視線上仰 gazePitch（正值＝抬頭）
+    const pitchCur = Math.asin(Math.max(-1, Math.min(1, faceWorld.y)));
+    let dp = this.gazePitch - pitchCur;
+    const MAX_PITCH = 1.2;
+    dp = Math.max(-MAX_PITCH, Math.min(MAX_PITCH, dp));
+
+    if(Math.abs(dy) < 0.0005 && Math.abs(dp) < 0.0005) return;
+
+    // 套用：newWorld = Rx(-dp) ∘ Ry(dy) ∘ oldWorld → 共軛轉回頭骨局部
     head.parent.getWorldQuaternion(_gazeQ2);
     const inv = _gazeQ3.copy(_gazeQ2).invert();
     _gazeQ4.setFromAxisAngle(_gazeUP.set(0,1,0), dy);
-    head.quaternion.premultiply(_gazeQ2).premultiply(_gazeQ4).premultiply(inv);
+    _gazeQ5.setFromAxisAngle(_gazeX.set(1,0,0), -dp);   // Rx(-dp)：正 dp = 抬頭
+    head.quaternion.premultiply(_gazeQ2).premultiply(_gazeQ4).premultiply(_gazeQ5).premultiply(inv);
   }
 }
 
 // 注視追蹤用的暫存物件（避免每幀配置記憶體）
 const _gazeQ1 = new THREE.Quaternion(), _gazeQ2 = new THREE.Quaternion(),
-      _gazeQ3 = new THREE.Quaternion(), _gazeQ4 = new THREE.Quaternion();
+      _gazeQ3 = new THREE.Quaternion(), _gazeQ4 = new THREE.Quaternion(),
+      _gazeQ5 = new THREE.Quaternion();
 const _gazeV1 = new THREE.Vector3(), _gazeV2 = new THREE.Vector3();
-const _gazeUP = new THREE.Vector3();
+const _gazeUP = new THREE.Vector3(), _gazeX = new THREE.Vector3();

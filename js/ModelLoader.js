@@ -6,7 +6,7 @@ import {FBXLoader} from 'three/addons/loaders/FBXLoader.js';
 // 動畫 key -> 檔案對應表
 export const ANIM_FILES = {
   model:   '小宇人物模型/rig.fbx',
-  sit:     '模擬病人：3D 模擬人物小安/坐著.fbx?v=20260830g',
+  sit:     '模擬病人：3D 模擬人物小安/坐著.fbx?v=20260830h',
   clap:    '模擬病人：3D 模擬人物小安/拍拍手.fbx',
   nod:     '模擬病人：3D 模擬人物小安/點點頭.fbx',
   yes:     '模擬病人：3D 模擬人物小安/是.fbx',
@@ -38,9 +38,9 @@ export class ModelManager{
     this._headBone = null;
     this._faceLocal = null;                          // 頭骨局部座標中「臉面朝向」的軸向
     this._lookExempt = new Set(['distract', 'shakeHead', 'touchHead', 'nod', 'yes']);  // 這些動作不修正頭部
-    // 頭部自然微動：緩慢飄移＋定時小瞥視
+    // 頭部自然微動：緩慢飄移＋不定時小瞥視
     this._gazeT = 0;
-    this._glancePeriod = 9;                          // 約每 9 秒一次小瞥視
+    this._glancePeriod = 9;                          // 目前瞥視間隔（會隨機化 6~13 秒）
     this._glanceCycle = -1;
     this._glanceAmpY = 0.12;
     this._glanceAmpP = 0;
@@ -49,6 +49,25 @@ export class ModelManager{
   // 調整視線上仰角度（度）
   setGazePitch(deg){
     this.gazePitch = THREE.MathUtils.degToRad(deg);
+  }
+
+  // 產生下一次瞥視的參數（隨機間隔＋隨機型態：看旁邊 / 低頭看圖卡 / 微微看上）
+  _nextGlance(){
+    this._glancePeriod = 6 + Math.random() * 7;                    // 6~13 秒
+    const roll = Math.random();
+    if(roll < 0.45){
+      // 看旁邊（±6~11°）
+      this._glanceAmpY = (Math.random() < 0.5 ? -1 : 1) * (0.10 + Math.random()*0.09);
+      this._glanceAmpP = (Math.random() - 0.5) * 0.06;
+    }else if(roll < 0.8){
+      // 低頭看圖卡（圖卡在下方：pitch 往下、微微偏一側）
+      this._glanceAmpY = (Math.random() - 0.5) * 0.10;
+      this._glanceAmpP = -(0.30 + Math.random()*0.12) - this.gazePitch;  // 相對目前上仰的總降角
+    }else{
+      // 微微看更上方（伸懶腰式小抬頭）
+      this._glanceAmpY = (Math.random() - 0.5) * 0.06;
+      this._glanceAmpP = 0.08 + Math.random()*0.08;
+    }
   }
 
   // main.js 在相機定位後呼叫，讓小宇注視考生（攝影機）方向
@@ -370,18 +389,17 @@ export class ModelManager{
     const MAX_PITCH = 1.2;
     dp = Math.max(-MAX_PITCH, Math.min(MAX_PITCH, dp));
 
-    // 3) 自然微動：緩慢飄移（±2°）＋定時小瞥視（每約 9 秒，小幅看一下別處再回來）
+    // 3) 自然微動：緩慢飄移（±2°）＋不定時小瞥視（看旁邊／看圖卡／微微抬頭）
     const t = this._gazeT;
     let yawOff = Math.sin(t*0.33)*0.030 + Math.sin(t*0.61+2.0)*0.018;
     let pitchOff = Math.sin(t*0.47+1.0)*0.020;
     const cycle = Math.floor(t / this._glancePeriod);
     if(cycle !== this._glanceCycle){
       this._glanceCycle = cycle;
-      this._glanceAmpY = (Math.random() < 0.5 ? -1 : 1) * (0.10 + Math.random()*0.10);  // ±6~11°
-      this._glanceAmpP = (Math.random() - 0.5) * 0.06;
+      this._nextGlance();                                          // 每次週期結束重新隨機下一次瞥視
     }
     const gt = t - cycle * this._glancePeriod;
-    const bump = Math.exp(-Math.pow((gt - this._glancePeriod*0.55) / 0.8, 2));
+    const bump = Math.exp(-Math.pow((gt - this._glancePeriod*0.55) / 0.9, 2));
     yawOff += bump * this._glanceAmpY;
     pitchOff += bump * this._glanceAmpP;
 

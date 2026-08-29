@@ -90,6 +90,8 @@ export class ModelManager{
 
     this.mixer = new THREE.AnimationMixer(baseObj);
 
+    // 第一階段：載入所有 clip（先不建立 action —— AnimationAction 建構子會立即從
+    // clip.tracks 生成 interpolants，若先建 action 再改軌道，播放時仍用舊資料）
     for(const key in ANIM_FILES){
       if(key === 'model') continue;
       const url = baseUrl + ANIM_FILES[key];
@@ -98,26 +100,33 @@ export class ModelManager{
         const clip = obj.animations[0];
         if(!clip){ this.log(`⚠ ${key} 無動畫片段`); continue; }
         clip.name = key;
-        const action = this.mixer.clipAction(clip);
-        action.clampWhenFinished = true;
-        if(key === 'sit'){
-          action.setLoop(THREE.LoopRepeat, Infinity);
-          action.play();
-          this.currentKey = key;
-        }else{
-          action.setLoop(THREE.LoopOnce, 1);
-          action.stop();
-        }
         this.clips.set(key, clip);
-        this.actions.set(key, action);
-        this.log(`✓ 註冊動畫：${key}`);
+        this.log(`✓ 載入動畫：${key}`);
       }catch(err){
         this.log(`✗ 載入失敗：${key}｜${err?.message||err}`);
       }
     }
 
-    // ---- 坐姿鎖定：所有單次動作維持坐姿（臀部高度與雙腿固定為坐姿基準，僅保留上半身動作）----
+    // 第二階段：坐姿鎖定（必須在建立 action 之前改寫軌道）
     this._applySittingBase();
+
+    // 第三階段：以修正後的軌道建立 AnimationAction
+    for(const key in ANIM_FILES){
+      const clip = this.clips.get(key);
+      if(!clip) continue;
+      const action = this.mixer.clipAction(clip);
+      action.clampWhenFinished = true;
+      if(key === 'sit'){
+        action.setLoop(THREE.LoopRepeat, Infinity);
+        action.play();
+        this.currentKey = key;
+      }else{
+        action.setLoop(THREE.LoopOnce, 1);
+        action.stop();
+      }
+      this.actions.set(key, action);
+      this.log(`✓ 註冊動畫：${key}`);
+    }
 
     this.mixer.addEventListener('finished', (e)=>{
       const finishedAction = e.action;

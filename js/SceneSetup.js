@@ -10,7 +10,7 @@ export function createSceneSetup(canvas){
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
   const scene = new THREE.Scene();
-  scene.background = new THREE.Color(0x0a0d11);
+  scene.background = new THREE.Color(0xffffff);
 
   const camera = new THREE.PerspectiveCamera(42, 1, 0.1, 100);
   camera.position.set(0, 1.35, 0.85);
@@ -43,10 +43,10 @@ export function createSceneSetup(canvas){
   fill.position.set(-3, 3, 2);
   scene.add(fill);
 
-  // ---- 地面（代替純黑，提供空間感） ----
+  // ---- 地面（淺色地板，配合白色背景，柔和陰影） ----
   const floor = new THREE.Mesh(
     new THREE.PlaneGeometry(20, 20),
-    new THREE.MeshStandardMaterial({color:0x1b242f, roughness:0.95, metalness:0.0})
+    new THREE.MeshStandardMaterial({color:0xf2f2f2, roughness:0.9, metalness:0.0})
   );
   floor.rotation.x = -Math.PI/2;
   floor.receiveShadow = true;

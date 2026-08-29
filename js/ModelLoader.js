@@ -6,7 +6,7 @@ import {FBXLoader} from 'three/addons/loaders/FBXLoader.js';
 // 動畫 key -> 檔案對應表
 export const ANIM_FILES = {
   model:   '小宇人物模型/rig.fbx',
-  sit:     '模擬病人：3D 模擬人物小安/坐著.fbx',
+  sit:     '模擬病人：3D 模擬人物小安/坐著.fbx?v=20260830f',
   clap:    '模擬病人：3D 模擬人物小安/拍拍手.fbx',
   nod:     '模擬病人：3D 模擬人物小安/點點頭.fbx',
   yes:     '模擬病人：3D 模擬人物小安/是.fbx',

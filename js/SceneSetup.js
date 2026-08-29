@@ -52,19 +52,16 @@ export function createSceneSetup(canvas){
   floor.receiveShadow = true;
   scene.add(floor);
 
-  // ---- 治療室背景牆（參考 背景.png：白牆＋波浪軟墊護板）----
+  // ---- 治療室背景牆（參考 背景_水平.png：白牆＋波浪軟墊護板）----
   // 純裝飾：放在小宇後方，不影響任何互動邏輯
   try{
     const wallTexLoader = new THREE.TextureLoader();
     wallTexLoader.setCrossOrigin('anonymous');
-    wallTexLoader.load(encodeURI('背景.png'), (tex)=>{
+    wallTexLoader.load(encodeURI('背景_水平.png'), (tex)=>{
       tex.colorSpace = THREE.SRGBColorSpace;
-      tex.wrapS = THREE.RepeatWrapping;
       tex.anisotropy = renderer.capabilities.getMaxAnisotropy();
-      const wallH = 3.6, wallW = 7.2;
-      const imgW = tex.image.width || 248, imgH = tex.image.height || 360;
-      const tileW = wallH * (imgW / imgH);           // 單張圖片對應的牆寬（保持圖片比例）
-      tex.repeat.set(wallW / tileW, 1);              // 水平平鋪波浪圖案
+      // 圖片比例 1.94，牆面比例 2.0——單張直接貼合
+      const wallH = 3.6, wallW = wallH * (1376/709);
       const wall = new THREE.Mesh(
         new THREE.PlaneGeometry(wallW, wallH),
         new THREE.MeshBasicMaterial({map: tex})       // Basic：直接顯示圖片原色

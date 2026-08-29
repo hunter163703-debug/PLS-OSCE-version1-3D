@@ -52,6 +52,31 @@ export function createSceneSetup(canvas){
   floor.receiveShadow = true;
   scene.add(floor);
 
+  // ---- 治療室背景牆（參考 背景.png：白牆＋波浪軟墊護板）----
+  // 純裝飾：放在小宇後方，不影響任何互動邏輯
+  try{
+    const wallTexLoader = new THREE.TextureLoader();
+    wallTexLoader.setCrossOrigin('anonymous');
+    wallTexLoader.load(encodeURI('背景.png'), (tex)=>{
+      tex.colorSpace = THREE.SRGBColorSpace;
+      tex.wrapS = THREE.RepeatWrapping;
+      tex.anisotropy = renderer.capabilities.getMaxAnisotropy();
+      const wallH = 3.6, wallW = 7.2;
+      const imgW = tex.image.width || 248, imgH = tex.image.height || 360;
+      const tileW = wallH * (imgW / imgH);           // 單張圖片對應的牆寬（保持圖片比例）
+      tex.repeat.set(wallW / tileW, 1);              // 水平平鋪波浪圖案
+      const wall = new THREE.Mesh(
+        new THREE.PlaneGeometry(wallW, wallH),
+        new THREE.MeshBasicMaterial({map: tex})       // Basic：直接顯示圖片原色
+      );
+      wall.position.set(0, wallH/2, -3.2);            // 立於小宇後方
+      scene.add(wall);
+      console.log('[Scene] 治療室背景牆已載入');
+    }, undefined, (err)=>{
+      console.warn('[Scene] 背景牆載入失敗（維持白背景）：', err?.message||err);
+    });
+  }catch(e){ console.warn('[Scene] 背景牆初始化例外：', e); }
+
   // ---- 圖卡：置於場景中央，確保在相機視野內 ----
   const cardGeo = new THREE.PlaneGeometry(1.3, 0.85);
   const cardMat = new THREE.MeshBasicMaterial({color:0x222222, side:THREE.DoubleSide});

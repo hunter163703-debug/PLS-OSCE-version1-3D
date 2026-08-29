@@ -1,10 +1,10 @@
 ﻿// main.js
 // 主程式：組合三大模組、UI 事件、語音引擎（Web Speech API）、渲染迴圈
 import * as THREE from 'three';
-import {createSceneSetup} from './SceneSetup.js?v=20260830a';
-import {ModelManager} from './ModelLoader.js?v=20260830a';
-import {InteractionLogic} from './InteractionLogic.js?v=20260830a';
-import {VoicePlayer} from './VoicePlayer.js?v=20260830a';
+import {createSceneSetup} from './SceneSetup.js?v=20260830b';
+import {ModelManager} from './ModelLoader.js?v=20260830b';
+import {InteractionLogic} from './InteractionLogic.js?v=20260830b';
+import {VoicePlayer} from './VoicePlayer.js?v=20260830b';
 
 console.log('[Main] 版本：20260803i');
 
@@ -303,6 +303,8 @@ logic.setCard('封面', BASE + CARD_FILES['封面']);
       stage.camera.position.set(center.x, cameraY, center.z + distance * 1.15);
       stage.camera.lookAt(center.x, targetLookY, center.z);
       console.log('[Main] 模型高度', size.y.toFixed(2), '相機位置', stage.camera.position.toArray(), '視線', targetLookY.toFixed(2), '距離', distance.toFixed(2));
+      // 讓小宇持續注視考生（攝影機方向）
+      mm.setGazeTarget(stage.camera.position);
     }
     ui.setStatusBadge('標準病人：3D 小宇　狀態：坐姿待命');
     logic.setCaption('3D 小宇已就位（坐姿）。請啟動麥克風開始測驗。', 3500);

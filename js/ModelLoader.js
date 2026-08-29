@@ -144,6 +144,29 @@ export class ModelManager{
       this.log(`✓ 註冊動畫：${key}`);
     }
 
+    // ---- 衣服改色：若存在「小宇_衣服.png」，以它覆蓋 rig.fbx 的內嵌貼圖 ----
+    // （由 recolor 腳本生成；刪除該檔即回復原色）
+    try{
+      const texLoader = new THREE.TextureLoader();
+      texLoader.setCrossOrigin('anonymous');
+      texLoader.load(encodeURI(baseUrl + '小宇人物模型/小宇_衣服.png'), (tex)=>{
+        tex.colorSpace = THREE.SRGBColorSpace;
+        this.model.traverse(o=>{
+          if(o.isMesh && o.material){
+            (Array.isArray(o.material)?o.material:[o.material]).forEach(m=>{
+              if(m.map){
+                tex.flipY = m.map.flipY;   // 與原內嵌貼圖同方向，避免 UV 上下顛倒
+                tex.needsUpdate = true;
+                m.map = tex;
+                m.needsUpdate = true;
+              }
+            });
+          }
+        });
+        this.log('✓ 衣服改色貼圖已套用');
+      }, undefined, ()=>{ /* 改色檔不存在，維持原色 */ });
+    }catch(e){ this.log('⚠ 衣服改色套用失敗：' + (e?.message||e)); }
+
     this.mixer.addEventListener('finished', (e)=>{
       const finishedAction = e.action;
       const key = this._actionKey(finishedAction);

@@ -1,10 +1,10 @@
 ﻿// main.js
 // 主程式：組合三大模組、UI 事件、語音引擎（Web Speech API）、渲染迴圈
 import * as THREE from 'three';
-import {createSceneSetup} from './SceneSetup.js?v=20260830c';
-import {ModelManager} from './ModelLoader.js?v=20260830c';
-import {InteractionLogic} from './InteractionLogic.js?v=20260830c';
-import {VoicePlayer} from './VoicePlayer.js?v=20260830c';
+import {createSceneSetup} from './SceneSetup.js?v=20260830d';
+import {ModelManager} from './ModelLoader.js?v=20260830d';
+import {InteractionLogic} from './InteractionLogic.js?v=20260830d';
+import {VoicePlayer} from './VoicePlayer.js?v=20260830d';
 
 console.log('[Main] 版本：20260803i');
 

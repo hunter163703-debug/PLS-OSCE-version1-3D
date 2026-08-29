@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="UTF-8"><title>改色驗證</title>
+<style>#r{position:fixed;top:10px;left:10px;z-index:99;background:#000;color:#0f0;font-size:28px;padding:8px;font-family:monospace}</style>
+</head>
+<body>
+<div id="r">載入中...</div>
+<script type="importmap">
+{ "imports": { "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+  "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/" } }
+</script>
+<script type="module">
+import * as THREE from 'three';
+import { FBXLoader } from 'three/addons/loaders/FBXLoader.js';
+const R = document.getElementById('r');
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(35, 16/9, 0.1, 100);
+camera.position.set(0, 1.0, 2.2);
+camera.lookAt(0, 0.9, 0);
+const renderer = new THREE.WebGLRenderer({antialias:true});
+renderer.setSize(1280, 720);
+document.body.appendChild(renderer.domElement);
+scene.add(new THREE.AmbientLight(0xffffff, 1.2));
+const dl = new THREE.DirectionalLight(0xffffff, 1.5);
+dl.position.set(2, 3, 2);
+scene.add(dl);
+
+const loader = new FBXLoader();
+loader.load(encodeURI('小宇人物模型/rig.fbx'), (model) => {
+  R.textContent = 'FBX 載入完成，套用改色...';
+  scene.add(model);
+  // 定位
+  const box = new THREE.Box3().setFromObject(model);
+  const size = box.getSize(new THREE.Vector3());
+  model.scale.setScalar(1.55 / Math.max(0.001, size.y));
+  const b2 = new THREE.Box3().setFromObject(model);
+  const c2 = b2.getCenter(new THREE.Vector3());
+  model.position.x += -c2.x; model.position.y += -b2.min.y; model.position.z += -c2.z;
+  model.rotation.y = 0;
+
+  // 套用改色貼圖
+  const tl = new THREE.TextureLoader();
+  tl.load(encodeURI('小宇人物模型/小宇_衣服.png'), (tex) => {
+    tex.colorSpace = THREE.SRGBColorSpace;
+    let replaced = 0;
+    model.traverse(o => {
+      if (o.isMesh && o.material) {
+        (Array.isArray(o.material)?o.material:[o.material]).forEach(m => {
+          if (m.map) { tex.flipY = m.map.flipY; tex.needsUpdate = true; m.map = tex; m.needsUpdate = true; replaced++; }
+        });
+      }
+    });
+    R.textContent = '改色套用，渲染統計中...';
+    // 渲染一幀後統計藍色像素
+    renderer.render(scene, camera);
+    setTimeout(() => {
+      renderer.render(scene, camera);
+      const w = renderer.domElement.width, h = renderer.domElement.height;
+      const c2d = document.createElement('canvas');
+      c2d.width = w; c2d.height = h;
+      const ctx = c2d.getContext('2d');
+      ctx.drawImage(renderer.domElement, 0, 0);
+      const data = ctx.getImageData(0, 0, w, h).data;
+      let blue = 0, skin = 0, total = 0;
+      for (let i = 0; i < data.length; i += 16) {  // 取樣 1/4
+        const r = data[i], g = data[i+1], b = data[i+2];
+        total++;
+        if (b > 90 && b > r * 1.5 && b > g * 1.3) blue++;       // 藍色（改色上衣）
+        if (r > 150 && g > 110 && b > 80 && r > b) skin++;       // 膚色
+      }
+      const bluePct = (blue/total*100).toFixed(1);
+      const skinPct = (skin/total*100).toFixed(1);
+      R.textContent = `RESULT 藍色比例:${bluePct}% 膚色比例:${skinPct}% 替換材質數:${replaced} ${blue > total*0.05 ? 'PASS✓' : 'FAIL✗'}`;
+    }, 300);
+  }, undefined, (e) => { R.textContent = '改色貼圖載入失敗: ' + (e?.message||e); });
+}, (e) => {
+  if (e.lengthComputable) R.textContent = 'FBX 載入中 ' + Math.round(e.loaded/e.total*100) + '%';
+}, (e) => { R.textContent = 'FBX 載入失敗: ' + (e?.message||e); });
+</script>
+</body>
+</html>

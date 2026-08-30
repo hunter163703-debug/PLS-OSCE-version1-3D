@@ -1,6 +1,7 @@
 // SceneSetup.js
 // 模組一：場景 / 相機 / 燈光 / 桌子 / 圖卡平面 / 指認標記
 import * as THREE from 'three';
+import { createWaveWallBackground } from './WaveWallBackground.js';
 
 export function createSceneSetup(canvas){
   const renderer = new THREE.WebGLRenderer({canvas, antialias:true, alpha:false});
@@ -52,27 +53,22 @@ export function createSceneSetup(canvas){
   floor.receiveShadow = true;
   scene.add(floor);
 
-  // ---- 治療室背景牆（參考 背景_水平.png：白牆＋波浪軟墊護板）----
-  // 純裝飾：放在小宇後方，不影響任何互動邏輯
+  // ---- 治療室背景牆（純 3D 程式化波浪軟墊護板）----
+  // 純裝飾：立體呈現於小宇後方，具備真實澎潤倒角與陰影，不影響互動邏輯
   try{
-    const wallTexLoader = new THREE.TextureLoader();
-    wallTexLoader.setCrossOrigin('anonymous');
-    wallTexLoader.load(encodeURI('背景_水平.png'), (tex)=>{
-      tex.colorSpace = THREE.SRGBColorSpace;
-      tex.anisotropy = renderer.capabilities.getMaxAnisotropy();
-      // 圖片比例 1.94，牆面比例 2.0——單張直接貼合
-      const wallH = 3.6, wallW = wallH * (1376/709);
-      const wall = new THREE.Mesh(
-        new THREE.PlaneGeometry(wallW, wallH),
-        new THREE.MeshBasicMaterial({map: tex})       // Basic：直接顯示圖片原色
-      );
-      wall.position.set(0, wallH/2, -3.2);            // 立於小宇後方
-      scene.add(wall);
-      console.log('[Scene] 治療室背景牆已載入');
-    }, undefined, (err)=>{
-      console.warn('[Scene] 背景牆載入失敗（維持白背景）：', err?.message||err);
+    const waveWall = createWaveWallBackground({
+      wallWidth: 10.0,
+      wallHeight: 4.2,
+      cushionBaseHeight: 1.45,
+      waveAmplitude: 0.16,
+      panelWidth: 0.52,
+      cushionDepth: 0.05,
+      cushionBevel: 0.025
     });
-  }catch(e){ console.warn('[Scene] 背景牆初始化例外：', e); }
+    waveWall.position.set(0, 0, -3.2); // 立於小宇後方
+    scene.add(waveWall);
+    console.log('[Scene] 純 3D 治療室波浪軟墊背景已載入');
+  }catch(e){ console.warn('[Scene] 3D 背景牆初始化例外：', e); }
 
   // ---- 圖卡：置於場景中央，確保在相機視野內 ----
   const cardGeo = new THREE.PlaneGeometry(1.3, 0.85);

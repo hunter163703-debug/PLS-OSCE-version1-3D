@@ -1,0 +1,141 @@
+﻿<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>3D 語言治療教室 — 波浪軟墊背景預覽測試</title>
+<style>
+  html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: #222; font-family: sans-serif; }
+  #canvas3d { width: 100%; height: 100%; display: block; }
+  #info {
+    position: absolute; top: 15px; left: 15px;
+    background: rgba(255, 255, 255, 0.9); padding: 14px 20px;
+    border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+    line-height: 1.6; font-size: 14px; color: #333; z-index: 10;
+  }
+  #info h3 { margin: 0 0 6px 0; color: #1a56db; font-size: 16px; }
+  .tag { display: inline-block; background: #e0f2fe; color: #0369a1; padding: 2px 8px; border-radius: 4px; font-weight: bold; margin-bottom: 6px; }
+</style>
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+    "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+  }
+}
+</script>
+</head>
+<body>
+  <div id="info">
+    <span class="tag">純 3D Three.js 程式化背景</span>
+    <h3>🧸 語言治療教室 — 波浪軟墊護板 (單層立體)</h3>
+    <div>🖱️ <b>操作說明</b>：滑鼠左鍵拖曳旋轉視角、滾輪縮放、右鍵平移</div>
+    <div>✨ <b>特色</b>：真 3D 圓弧澎潤倒角、單層一體波浪、微皮革紋理、即時投影</div>
+  </div>
+  <canvas id="canvas3d"></canvas>
+
+  <script type="module">
+    import * as THREE from 'three';
+    import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+    import { createWaveWallBackground } from './js/WaveWallBackground.js';
+
+    // 1. 初始化 Renderer
+    const canvas = document.getElementById('canvas3d');
+    const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+
+    // 2. 場景與相機
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0xdedede);
+
+    const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 100);
+    camera.position.set(0, 1.4, 3.8);
+
+    const controls = new OrbitControls(camera, canvas);
+    controls.enableDamping = true;
+    controls.target.set(0, 1.1, 0);
+
+    // 3. 燈光設置
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.65);
+    scene.add(ambientLight);
+
+    const sunLight = new THREE.DirectionalLight(0xfffaed, 1.35);
+    sunLight.position.set(3, 5, 4);
+    sunLight.castShadow = true;
+    sunLight.shadow.mapSize.set(2048, 2048);
+    sunLight.shadow.camera.near = 0.5;
+    sunLight.shadow.camera.far = 15;
+    sunLight.shadow.camera.left = -4;
+    sunLight.shadow.camera.right = 4;
+    sunLight.shadow.camera.top = 3;
+    sunLight.shadow.camera.bottom = -1;
+    sunLight.shadow.bias = -0.0005;
+    scene.add(sunLight);
+
+    const fillLight = new THREE.DirectionalLight(0xdce7ff, 0.4);
+    fillLight.position.set(-3, 3, 2);
+    scene.add(fillLight);
+
+    // 4. 地面
+    const floorGeo = new THREE.PlaneGeometry(16, 16);
+    const floorMat = new THREE.MeshStandardMaterial({
+      color: 0xf5eee6, // 淺色溫暖木紋/地面
+      roughness: 0.85,
+      metalness: 0.0
+    });
+    const floor = new THREE.Mesh(floorGeo, floorMat);
+    floor.rotation.x = -Math.PI / 2;
+    floor.receiveShadow = true;
+    scene.add(floor);
+
+    // 5. 加入純 3D 波浪軟墊背景模組
+    const waveWall = createWaveWallBackground({
+      wallWidth: 9.0,
+      wallHeight: 3.8,
+      cushionBaseHeight: 1.35,
+      waveAmplitude: 0.16,
+      panelWidth: 0.50,
+      cushionDepth: 0.05,
+      cushionBevel: 0.025
+    });
+    waveWall.position.set(0, 0, -0.6);
+    scene.add(waveWall);
+
+    // 6. 放入一個示範 3D 測試物體 (用來展示投射在軟墊上的真實陰影與空間層次)
+    const demoBox = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.35, 0.35, 0.75, 32),
+      new THREE.MeshStandardMaterial({ color: 0x4f46e5, roughness: 0.3 })
+    );
+    demoBox.position.set(0.6, 0.75 / 2, 0.2);
+    demoBox.castShadow = true;
+    demoBox.receiveShadow = true;
+    scene.add(demoBox);
+
+    const chairGeo = new THREE.BoxGeometry(0.55, 0.45, 0.55);
+    const chairMat = new THREE.MeshStandardMaterial({ color: 0xf59e0b, roughness: 0.4 });
+    const chair = new THREE.Mesh(chairGeo, chairMat);
+    chair.position.set(-0.7, 0.45 / 2, 0.1);
+    chair.castShadow = true;
+    chair.receiveShadow = true;
+    scene.add(chair);
+
+    // 7. 動畫迴圈與 Resize
+    window.addEventListener('resize', () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+
+    function animate() {
+      requestAnimationFrame(animate);
+      controls.update();
+      renderer.render(scene, camera);
+    }
+    animate();
+  </script>
+</body>
+</html>

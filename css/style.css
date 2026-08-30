@@ -22,7 +22,7 @@ body{
 }
 h1,h2{margin:0;font-weight:700;line-height:1.25}
 h1{font-size:20pt}                       /* 標題 */
-h2{font-size:17pt;margin-bottom:.15em}
+h2{font-size:13pt;margin-bottom:.1em}
 p{margin:.15em 0}
 
 /* 頂欄 */
@@ -77,8 +77,9 @@ p{margin:.15em 0}
   width:auto;
   object-fit:contain;
 }
+/* 右側面板：壓縮間距使全部題目同步呈現（無捲動） */
 #panel{
-  overflow:hidden;padding:.4em .5em;
+  overflow-y:auto;overflow-x:hidden;padding:.3em .45em;
   background:var(--panel);border-left:2px solid var(--line);
 }
 
@@ -86,14 +87,12 @@ p{margin:.15em 0}
 @media (max-width:1100px){
   #layout{grid-template-columns:2fr 1fr}
 }
-.block{padding:.35em .5em;border:1px solid var(--line);border-radius:7px;margin-bottom:.4em;background:#0e1419}
-.block.compact{padding:.25em .4em;margin-bottom:.3em}
-.block.compact h2{font-size:15pt}
+.block{padding:.22em .4em;border:1px solid var(--line);border-radius:7px;margin-bottom:.25em;background:#0e1419}
+.block.compact{padding:.15em .35em;margin-bottom:.2em}
+.block.compact h2{font-size:11.5pt}
 
-/* 字幕：置底 高對比 */
-.caption{
-  display:none; /* 使用者要求刪除圖卡最下方說明欄 / 字幕 */
-}
+.transcript{font-size:12.5pt;font-weight:700;color:var(--fg);min-height:1.1em}
+.status{font-size:12.5pt;color:var(--accent);font-weight:700}
 
 /* 對話雲：人物說話時顯示 */
 .speech-bubble{
@@ -134,8 +133,6 @@ p{margin:.15em 0}
   border-color:#ffffff transparent transparent transparent;
   z-index:1;
 }
-.transcript{font-size:var(--min);font-weight:700;color:var(--fg);min-height:1.2em}
-.status{font-size:var(--min);color:var(--accent);font-weight:700}
 .badge{font-weight:700}
 
 /* 按鈕 */
@@ -147,19 +144,19 @@ p{margin:.15em 0}
 .btn:hover{background:var(--accent)}
 .btn:active{transform:translateY(1px)}
 .btn.primary{background:var(--accent);color:#000;border-color:#000}
-.btn.card{min-width:54px;margin:.1em}
-.cardrow{display:flex;flex-wrap:wrap;gap:.2em}
+.btn.card{min-width:48px;margin:.08em}
+.cardrow{display:flex;flex-wrap:wrap;gap:.18em}
 #micBtn.recording{background:var(--danger);color:#fff;border-color:#fff}
 
 .guide{font-size:var(--min);margin:.15em 0;padding-left:1.1em}
 .guide li{margin:.1em 0}
 
-/* 測驗進度 */
-.progress-tree{display:flex;flex-direction:column;gap:.25em}
-.phase{font-size:var(--min);background:#1a1f27;border:1px solid var(--line);border-radius:6px;padding:.2em .35em}
-.phase-title{font-weight:700;color:#fff;margin-bottom:.05em}
-.sub-list{display:flex;flex-wrap:wrap;gap:.2em}
-.sub-item{font-size:var(--min);font-weight:700;background:#252c36;color:#999;padding:.05em .35em;border-radius:4px;border:1px solid #3a4655}
+/* 測驗進度（緊湊：全部題目同步呈現於右欄） */
+.progress-tree{display:flex;flex-direction:column;gap:.18em}
+.phase{font-size:12pt;background:#1a1f27;border:1px solid var(--line);border-radius:6px;padding:.12em .3em}
+.phase-title{font-weight:700;color:#fff;margin-bottom:.04em;font-size:12pt}
+.sub-list{display:flex;flex-wrap:wrap;gap:.15em}
+.sub-item{font-size:12pt;font-weight:700;background:#252c36;color:#c8d2dc;padding:.02em .28em;border-radius:4px;border:1px solid #3a4655}
 .sub-item.current{background:var(--accent);color:#000;border-color:#000}
 .sub-item.done{background:var(--ok);color:#000;border-color:#000}
 

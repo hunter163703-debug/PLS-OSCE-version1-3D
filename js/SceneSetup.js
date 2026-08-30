@@ -28,10 +28,10 @@ export function createSceneSetup(canvas){
   window.addEventListener('resize', resize);
   setTimeout(resize, 100);
 
-  // ---- 燈光（臨床考試需求：清晰、低眩光） ----
-  scene.add(new THREE.AmbientLight(0xffffff, 0.55));
+  // ---- 燈光（明亮自然：貼圖原色呈現，臨床考試清晰不陰暗） ----
+  scene.add(new THREE.AmbientLight(0xffffff, 0.9));
 
-  const key = new THREE.DirectionalLight(0xffffff, 1.4);
+  const key = new THREE.DirectionalLight(0xffffff, 1.8);
   key.position.set(2.5, 4.2, 3.0);
   key.castShadow = true;
   key.shadow.mapSize.set(2048, 2048);
@@ -40,9 +40,14 @@ export function createSceneSetup(canvas){
   key.shadow.camera.top = 4; key.shadow.camera.bottom = -4;
   scene.add(key);
 
-  const fill = new THREE.DirectionalLight(0xbfd4ff, 0.45);
+  const fill = new THREE.DirectionalLight(0xffffff, 0.7);
   fill.position.set(-3, 3, 2);
   scene.add(fill);
+
+  // 正面補光：讓臉部明亮（攝影機方向柔和補光）
+  const front = new THREE.DirectionalLight(0xfff6ec, 0.55);
+  front.position.set(0, 1.6, 4);
+  scene.add(front);
 
   // ---- 地面（淺色地板，配合白色背景，柔和陰影） ----
   const floor = new THREE.Mesh(

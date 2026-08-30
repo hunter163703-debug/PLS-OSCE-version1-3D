@@ -95,6 +95,14 @@ export class ModelManager{
           (Array.isArray(o.material)?o.material:[o.material]).forEach(m=>{
             m.side = THREE.FrontSide;
             if('metalness' in m) m.metalness = Math.min(m.metalness, 0.2);
+            // Mixamo 材質修正：diffuse 預設 0.604 灰會把貼圖壓暗 40%，有貼圖時強制純白讓貼圖原色呈現
+            if(m.map && m.color){ m.color.setRGB(1, 1, 1); m.color.convertSRGBToLinear?.(); }
+            if(m.map){ m.map.colorSpace = THREE.SRGBColorSpace; }
+            // 柔化 Phong 高光（避免油亮/詭異反光）
+            if('specular' in m && m.specular){ m.specular.setHex(0x2a2a2a); }
+            if('shininess' in m){ m.shininess = Math.min(m.shininess, 18); }
+            // 舊補丁：無貼圖的純黑材質改灰（僅作用於無 map 的材質）
+            if(m && m.color && !m.map && m.color.r===0 && m.color.g===0 && m.color.b===0){ m.color.setHex(0x888888); }
           });
         }
       }

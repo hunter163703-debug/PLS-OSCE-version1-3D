@@ -5,31 +5,16 @@
 // 圖卡上各項目的 UV 座標（完整圖片座標：左下為 (0,0)，右上為 (1,1)）
 // ※ 2026-08-03 經 calibrate.html 實機點擊校準；3D 紋理裁切換算由 SceneSetup 處理
 // 圖卡一布局：3×3 網格（上排：蘋果、手套、香蕉；中排：牛奶、杯子；下排：手錶、報紙）
-export const CARD_ITEMS = {
-  '圖卡一': {
-    '蘋果': {uv:[0.226, 0.816]},
-    '手套': {uv:[0.502, 0.833]},
-    '香蕉': {uv:[0.766, 0.813]},
-    '牛奶': {uv:[0.491, 0.488]},
-    '報紙': {uv:[0.496, 0.166]},
-    '杯子': {uv:[0.755, 0.188]},
-    '手錶': {uv:[0.238, 0.188]},
-  },
-  '圖卡四': {
-    '背書包': {uv:[0.663, 0.073]}  // 第4張圖片（小女生背書包準備出門）— 已校準
-  }
-};
+import { VERSION } from './VersionConfig.js?v=20260830l';
+
+export const CARD_ITEMS = VERSION.cardItems;
 
 // 故事理解用關鍵詞（依新腳本更新：移除舊動物名稱，加入火車站、爸爸）
-const STORY_KEYWORDS = ['動物園','小明','媽媽','火車站','爸爸'];
+const STORY_KEYWORDS = VERSION.exam.storyKeywords;
 
 // 各階段總題數（用於測驗結束判斷）
 // 語言理解含第1~15題 + 第28題，共 16 題
-const PHASE_TOTALS = {
-  '分測驗二練習題': 3,
-  '分測驗二語言理解': 16,
-  '分測驗二口語表達': 2
-};
+const PHASE_TOTALS = VERSION.exam.phaseTotals;
 
 export class InteractionLogic{
   constructor({models, stage, ui, speech, voice}){

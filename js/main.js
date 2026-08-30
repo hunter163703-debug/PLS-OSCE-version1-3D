@@ -1,24 +1,18 @@
 ﻿// main.js
 // 主程式：組合三大模組、UI 事件、語音引擎（Web Speech API）、渲染迴圈
 import * as THREE from 'three';
-import {createSceneSetup} from './SceneSetup.js?v=20260830k';
-import {ModelManager} from './ModelLoader.js?v=20260830k';
-import {InteractionLogic} from './InteractionLogic.js?v=20260830k';
-import {VoicePlayer} from './VoicePlayer.js?v=20260830k';
+import {createSceneSetup} from './SceneSetup.js?v=20260830l';
+import {ModelManager} from './ModelLoader.js?v=20260830l';
+import {InteractionLogic} from './InteractionLogic.js?v=20260830l';
+import {VoicePlayer} from './VoicePlayer.js?v=20260830l';
+import { VERSION } from './VersionConfig.js?v=20260830l';
 
 console.log('[Main] 版本：20260803i');
 
 const BASE = ''; // 以本機 HTTP 伺服器根目錄為基底
 
 // 圖卡實際檔名（副檔名不一，需精確對應）
-const CARD_FILES = {
-  '封面':   '測驗題本圖片檔/封面.JPG',
-  '圖卡一': '測驗題本圖片檔/圖卡一.png',
-  '圖卡二': '測驗題本圖片檔/圖卡二.png',
-  '圖卡三': '測驗題本圖片檔/圖卡三.png',
-  '圖卡四': '測驗題本圖片檔/圖卡四.JPG',
-  '圖卡五': '測驗題本圖片檔/圖卡五.JPG'
-};
+const CARD_FILES = VERSION.cards;
 
 const canvas = document.getElementById('webgl');
 const stage = createSceneSetup(canvas);
@@ -77,7 +71,7 @@ const mm = new ModelManager(stage.scene, stage.renderer);
 mm.onLog = (msg)=>{ console.log('[Model]', msg); };
 
 // 小宇合成語音：使用專案提供的「小安.MP3」
-const voice = new VoicePlayer(BASE + '小安.MP3');
+const voice = new VoicePlayer(BASE + VERSION.character.voiceFile);
 voice.onLog = (msg)=> console.log('[Voice]', msg);
 
 // 播放小宇語音時暫停麥克風，避免喇叭輸出被麥克風收音造成回音 Loop
@@ -208,8 +202,8 @@ Speech.onResult((text)=>{ examTimer.start(); logic.handleUtterance(text); });
 
 // ---------- 測驗計時器（10 分鐘） ----------
 const examTimer = (()=>{
-  const TOTAL_SEC = 10*60;   // 總時數 10 分鐘
-  const WARN_SEC  = 8*60;    // 8 分鐘提醒
+  const TOTAL_SEC = VERSION.exam.totalSec;   // 總時數 10 分鐘
+  const WARN_SEC  = VERSION.exam.warnSec;    // 8 分鐘提醒
   let startTs = null, tickInt = null;
   const el     = ()=> document.getElementById('examTimer');
   const warnEl = ()=> document.getElementById('timerWarn');

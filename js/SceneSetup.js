@@ -2,6 +2,7 @@
 // 模組一：場景 / 相機 / 燈光 / 桌子 / 圖卡平面 / 指認標記
 import * as THREE from 'three';
 import { createWaveWallBackground } from './WaveWallBackground.js';
+import { VERSION } from './VersionConfig.js?v=20260830l';
 
 export function createSceneSetup(canvas){
   const renderer = new THREE.WebGLRenderer({canvas, antialias:true, alpha:false});
@@ -29,9 +30,9 @@ export function createSceneSetup(canvas){
   setTimeout(resize, 100);
 
   // ---- 燈光（明亮自然：貼圖原色呈現，臨床考試清晰不陰暗） ----
-  scene.add(new THREE.AmbientLight(0xffffff, 0.9));
+  scene.add(new THREE.AmbientLight(0xffffff, VERSION.scene.lights.ambient));
 
-  const key = new THREE.DirectionalLight(0xffffff, 1.8);
+  const key = new THREE.DirectionalLight(0xffffff, VERSION.scene.lights.key);
   key.position.set(2.5, 4.2, 3.0);
   key.castShadow = true;
   key.shadow.mapSize.set(2048, 2048);
@@ -40,19 +41,19 @@ export function createSceneSetup(canvas){
   key.shadow.camera.top = 4; key.shadow.camera.bottom = -4;
   scene.add(key);
 
-  const fill = new THREE.DirectionalLight(0xffffff, 0.7);
+  const fill = new THREE.DirectionalLight(0xffffff, VERSION.scene.lights.fill);
   fill.position.set(-3, 3, 2);
   scene.add(fill);
 
   // 正面補光：讓臉部明亮（攝影機方向柔和補光）
-  const front = new THREE.DirectionalLight(0xfff6ec, 0.55);
+  const front = new THREE.DirectionalLight(0xfff6ec, VERSION.scene.lights.front);
   front.position.set(0, 1.6, 4);
   scene.add(front);
 
   // ---- 地面（淺色地板，配合白色背景，柔和陰影） ----
   const floor = new THREE.Mesh(
     new THREE.PlaneGeometry(20, 20),
-    new THREE.MeshStandardMaterial({color:0xf2f2f2, roughness:0.9, metalness:0.0})
+    new THREE.MeshStandardMaterial({color:VERSION.scene.floorColor, roughness:0.9, metalness:0.0})
   );
   floor.rotation.x = -Math.PI/2;
   floor.receiveShadow = true;
@@ -61,16 +62,9 @@ export function createSceneSetup(canvas){
   // ---- 治療室背景牆（純 3D 程式化波浪軟墊護板）----
   // 純裝飾：立體呈現於小宇後方，具備真實澎潤倒角與陰影，不影響互動邏輯
   try{
-    const waveWall = createWaveWallBackground({
-      wallWidth: 10.0,
-      wallHeight: 4.2,
-      cushionBaseHeight: 1.45,
-      waveAmplitude: 0.16,
-      panelWidth: 0.52,
-      cushionDepth: 0.05,
-      cushionBevel: 0.025
-    });
-    waveWall.position.set(0, 0, -3.2); // 立於小宇後方
+    const ww = VERSION.scene.waveWall;
+    const waveWall = createWaveWallBackground(ww);
+    waveWall.position.set(0, 0, ww.z); // 立於小宇後方
     scene.add(waveWall);
     console.log('[Scene] 純 3D 治療室波浪軟墊背景已載入');
   }catch(e){ console.warn('[Scene] 3D 背景牆初始化例外：', e); }

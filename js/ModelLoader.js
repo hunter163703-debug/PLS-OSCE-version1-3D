@@ -2,22 +2,10 @@
 // 模組二：載入 3D 小宇（FBX）與所有 FBX 動畫，建立 AnimationMixer 並提供平滑 Crossfade
 import * as THREE from 'three';
 import {FBXLoader} from 'three/addons/loaders/FBXLoader.js';
+import {VERSION} from './VersionConfig.js?v=20260830l';
 
 // 動畫 key -> 檔案對應表
-export const ANIM_FILES = {
-  model:   '小宇人物模型/rig.fbx',
-  sit:     '模擬病人：3D 模擬人物小安/坐著.fbx?v=20260830j',
-  clap:    '模擬病人：3D 模擬人物小安/拍拍手.fbx',
-  nod:     '模擬病人：3D 模擬人物小安/點點頭.fbx',
-  yes:     '模擬病人：3D 模擬人物小安/是.fbx',
-  handshake:'模擬病人：3D 模擬人物小安/握手.fbx',
-  touchHead:'模擬病人：3D 模擬人物小安/摸頭.fbx',
-  point:   '模擬病人：3D 模擬人物小安/指.fbx',
-  speak:   '模擬病人：3D 模擬人物小安/說話.fbx',
-  distract:'模擬病人：3D 模擬人物小安/分心-站.fbx',
-  greet:   '模擬病人：3D 模擬人物小安/打招呼.fbx',
-  shakeHead:'模擬病人：3D 模擬人物小安/搖頭.fbx'
-};
+export const ANIM_FILES = VERSION.animFiles;
 
 export class ModelManager{
   constructor(scene, renderer){
@@ -34,7 +22,7 @@ export class ModelManager{
     this._busy = false;
     // ---- 注視考生（頭部水平追蹤）----
     this.gazeTarget = new THREE.Vector3(0, 1.3, 3);  // 預設：畫面前方（考生方向）
-    this.gazePitch = THREE.MathUtils.degToRad(15);   // 視線上仰角度（頭部微抬，直視螢幕上方）
+    this.gazePitch = THREE.MathUtils.degToRad(VERSION.gaze.pitchDeg);   // 視線上仰角度（頭部微抬，直視螢幕上方）
     this._headBone = null;
     this._faceLocal = null;                          // 頭骨局部座標中「臉面朝向」的軸向
     this._lookExempt = new Set(['distract', 'shakeHead', 'touchHead', 'nod', 'yes']);  // 這些動作不修正頭部
@@ -114,7 +102,7 @@ export class ModelManager{
     if(size.x===0 && size.y===0 && size.z===0){
       this.log('⚠ 模型 bounding box 為零，可能是空節點');
     }
-    const targetH = 1.55;
+    const targetH = VERSION.character.scaleHeight;
     const scale = targetH / Math.max(0.001, size.y);
     baseObj.scale.setScalar(scale);
     const box2 = new THREE.Box3().setFromObject(baseObj);
